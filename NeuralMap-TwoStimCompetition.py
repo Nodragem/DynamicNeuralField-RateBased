@@ -13,58 +13,67 @@ RECORD_VIDEO = False
 simulation_time = 1000 #frames
 ## Note that we use two stimuli which are not equal in strength
 ## equal competition doesn't work well when sigmoid gain function + method of Euler for integration.
-## -- Input and recording configurations:
-GC1 = GeneratorConstante(251.0*1.0) ## this input is slightly stronger than GC2, it represent firing rate.
 ## note that with Trappenberg parameters: an exact equality still lead to a winner (miracle of float precision?)
-GC1.color = [1,0,0]
+## --------------------------------------
+## --- Input and DNF Initialisations:
+GC1 = GeneratorConstante(251.0*1.0) ## this input is slightly stronger than GC2, it represent firing rate.
+GC1.color = [1,0,0] # the input will be drawn is red
 GC2 = GeneratorConstante(250.0*1.0)
-## here you choose the position of the input on the map
-position1 = 450 # 400/600: winner-take-all, 450/550: auto-inhibition, 480/520: merging
+## - Choose the position and size of the inputs on the map
+position1 = 400
 s1 = 20.0
-position2 = 550
+position2 = 600
 s2 = 20.0
+# - Create a NeuralField (DNF):
 width = 1000
 NF = NeuralField1D(width, 100) ## time constant of 100 just to slow the process down and see it on the animation
 NF.u0 = 0 ##Trappenberg biases the equilibirum state of build-up neurons, we don't
+# - Create Probes to record what's happening in the DNF:
 NF.getProbe(0).position = position1
 NF.getProbe(0).color = [1.0, 0.7, 0.2]
 NF.getProbe(0).name = "P1"
 NF.addProbe("P2", position2).color = [0.2, 0.7, 1.0]
 
-## uncomment this line to get noise:
+## - Uncomment this line to get noise:
 #NF.noise = lambda x: np.random.uniform(0, 1, x)*20
 
+## ----------------------------------------
 ## --- Definition of the Gain function:
-## --- Sigmoid, reasonnable function:
+## - Sigmoid 1, reasonnable function:
 ## Here we use the default gain function, which is a sigmoid defined by beta slope and an x_offset:
 # NF.beta = 0.02
 # NF.firing_offset = 350
 ## \--> this offset allows the model to be stable when no input (quite important, isn't it?'), it can't fire for negative value of u(t), which seems quite reasonnable. However, this parameters was set to 0 in Trappenberg 2001
 ## Note: with this set of parameters, you need bigger difference between GC1 and GC2 to diverge to the threshold than with the negative exponential function or Trappenberg parameters.
 
-## --- Definition of the Gain function:
-## --- Trappenberg parameters:
-# NF.beta = 0.07
-# NF.firing_offset = 0
+## - Simoid 2, Trappenberg parameters:
+#NF.beta = 0.07
+#NF.firing_offset = 0
 
-# --- Definition of the Gain function:
-# --- Negative Exponential (as a capacitor function)
-# But we can also change the gain function and use an inverse exponential:
+## - Negative Exponential (as a capacitor function)
+## But we can also change the gain function and use an inverse exponential:
 def exponentialRise(u):
     tau_fr = 200.0
     u_offset = 150
     fr = 500*(1-np.exp(-(u-u_offset)/tau_fr))
     fr[fr<0] = 0
     return fr
-# you just need to replace the function in the neural field NF:
+ # you just need to replace the function in the neural field NF:
 NF.GainFunction = exponentialRise
 
-## -- Definition of the Connections:
-## It seems that the parameters of Trappenberg was way to strong (but note that we have more neurons in our model)
-Sa = 2*60.0; A = 144.0/200/5;  ## Sa = 0.6mm while 1 neurons is 0.01
-Sb = 2*180.0; B = 44.0/100/5;
-c = 16.0/100/5;
-## I create the lateral connections and attached them to the neural field
+## ----------------------------------------
+## --- Definition of the Connections:
+## It seems that the parameters of Trappenberg was too strong (but note that we have more neurons in our model)
+## - Set of Parameters 1:
+#Sa = 2*60.0; A = 144.0/200/5;  ## Sa = 0.6mm while 1 neurons is 0.01
+#Sb = 2*180.0; B = 44.0/100/5;
+#c = 16.0/100/5;
+
+## - Set of Parameters 2:
+Sa = 2*30.0; A = 144.0/200/5;  ## Sa = 0.6mm while 1 neurons is 0.01
+Sb = 2*180.0; B = 0;
+c = 50.0/100/5;
+## - I create the lateral connections and attached them to the neural field
 def DoF(x, Sa, Aa, Sb, Ab, c):
     Ga = Aa*(np.exp(-(x**2)/(2*Sa**2)))
     Gb = Ab*(np.exp(-(x**2)/(2*Sb**2)))
@@ -83,7 +92,10 @@ W2 = NF.set_external(w2, GC2)
 list_obj = [GC1, GC2, NF] ## they need to be updated at each time step
 
 
-## -- Plotting and Loop section:
+## ----------------------------------------
+## --- Plotting and Loop section:
+## - Note: the drawback here is that I mixed the display and the simulation.
+## - Better way to program would be to separate the simulation from the displaying.
 
 # I plot the connection function and the gain function:
 plt.figure()

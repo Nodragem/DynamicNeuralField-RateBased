@@ -1,7 +1,7 @@
 import matplotlib.pyplot as plt
 from matplotlib import animation
 from util.Generators import *
-import os    
+import os
 import dill as pickle
 
 current_folder = os.path.dirname(os.path.realpath(__file__))
@@ -22,19 +22,19 @@ SHOW_CONNECTIONS = True
 from time import time
 for n, gain_rate in enumerate(tested_gain_rate):
     dico_result = {}
-    for k, distance in enumerate(distances):    
+    for k, distance in enumerate(distances):
         print "\r \r Run of distance %d and gain %d ..."%(distance, gain_rate)
-        t0 = time() 
-        ## -- Input and recording configurations: 
-        GC1 = GeneratorConstante(251.0*1.0) ## this input is slightly stronger than GC2, it represent firing rate.  
+        t0 = time()
+        ## -- Input and recording configurations:
+        GC1 = GeneratorConstante(251.0*1.0) ## this input is slightly stronger than GC2, it represent firing rate.
         ## note that with Trappenberg parameters: an exact equality still lead to a winner (miracle of float precision?)
         GC1.color = [1,0,0]
-        GC2 = GeneratorConstante(250.0*1.0) 
+        GC2 = GeneratorConstante(250.0*1.0)
         ## here you choose the position of the input on the map
         position1 = 500 - distance/2 # 400/600: winner-take-all, 450/550: auto-inhibition, 480/520: merging
         s1 = 20.0
         position2 = 500 + distance/2
-        s2 = 20.0 
+        s2 = 20.0
         width = 1000
         NF = NeuralField1D(width, 100) ## time constant of 100 just to slow the process down and see it on the animation
         NF.u0 = 0 ##Trappenberg biases the equilibirum state of build-up neurons, we don't
@@ -65,7 +65,7 @@ for n, gain_rate in enumerate(tested_gain_rate):
 #        Sa = 2*60.0; A = 144.0/200/5;  ## Sa = 0.6mm while 1 neurons is 0.01
 #        Sb = 2*180.0; B = 44.0/100/5;
 #        c = 16.0/100/5;
-        
+
         ## flat inhibition
         Sa = 2*30.0; A = 144.0/200/5;  ## Sa = 0.6mm while 1 neurons is 0.01
         Sb = 2*180.0; B = 0;
@@ -82,14 +82,11 @@ for n, gain_rate in enumerate(tested_gain_rate):
 
         ## I connect the Contanst Generator to my NeuralField as external input
         w1 = np.zeros(width); w1[position1-s1/2.0:position1+s1/2.0] = 1.0
-        W1 = NF.set_external(w1, GC1)  
+        W1 = NF.set_external(w1, GC1)
         w2 = np.zeros(width); w2[position2-s2/2.0:position2+s2/2.0] = 1.0
         W2 = NF.set_external(w2, GC2)
 
         list_obj = [GC1, GC2, NF] ## they need to be updated at each time step
-
-
-        # -- Plotting and Loop section:
 
         # I plot the connection function and the gain function:
         if (n == 0) and (k==0) and SHOW_CONNECTIONS:
@@ -108,34 +105,34 @@ for n, gain_rate in enumerate(tested_gain_rate):
             plt.tight_layout()
             plt.savefig("ConnectionD%dG%d.png"%(distance, gain_rate))
             plt.show(block=True)
-        
-
 
         ## I define which probes we want to plot:
         displayed_probes = ["Default", "P1", "P2"]
 
-        ## First set up the figure, the axis, and the plot element we want to animate
+        # -- Loop section:
+        ## this for-loop is the simulation:
         for i in xrange(simulation_time):
             for o in list_obj:
                 o.update()
-                
+
+        ## After the simulation we:
+        ## --> extract the last firing rate of neurons.
         firing_map = NF.GainFunction(NF.V)
-        if k == 0:
+        if k == 0: ## if first distance, we initialaze a dictionnary to save the results.
             dico_result = {"distance": [], "last_firingmap": []}
             for probe in NF.getProbes():
-                dico_result[probe.name] = {"pos":[], "time":[], "value":[]} 
-            
+                dico_result[probe.name] = {"pos":[], "time":[], "value":[]}
+
+        ## --> we fill our dictionnary with the results of the simulations:
         dico_result["distance"].append(distance)
         dico_result["last_firingmap"].append(firing_map)
         for probe in NF.getProbes():
             dico_result[probe.name]["pos"].append(probe.position)
             dico_result[probe.name]["time"].append(probe.time_buffer)
-            dico_result[probe.name]["value"].append(probe.value_buffer)    
-                
+            dico_result[probe.name]["value"].append(probe.value_buffer)
+
+        ## --> we display the duration:
         t1 = time()
         print((t1 - t0))
-    #result_by_gain_rate.append({"gain": gain_rate, "data":result_per_distance})
+    ## -- > for each gain, we save a dictionnary with the result for each distances
     pickle.dump({"gain": gain_rate, "data":dico_result}, open( path_result+"resultG%d.p"%gain_rate, "wb" ) )
-
-    
-    
