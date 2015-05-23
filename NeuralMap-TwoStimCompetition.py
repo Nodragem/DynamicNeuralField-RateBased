@@ -65,14 +65,14 @@ NF.GainFunction = exponentialRise
 ## --- Definition of the Connections:
 ## It seems that the parameters of Trappenberg was too strong (but note that we have more neurons in our model)
 ## - Set of Parameters 1:
-#Sa = 2*60.0; A = 144.0/200/5;  ## Sa = 0.6mm while 1 neurons is 0.01
-#Sb = 2*180.0; B = 44.0/100/5;
-#c = 16.0/100/5;
+Sa = 2*60.0; A = 144.0/200/5;  ## Sa = 0.6mm while 1 neurons is 0.01
+Sb = 2*180.0; B = 44.0/100/5;
+c = 16.0/100/5;
 
 ## - Set of Parameters 2:
-Sa = 2*30.0; A = 144.0/200/5;  ## Sa = 0.6mm while 1 neurons is 0.01
-Sb = 2*180.0; B = 0;
-c = 50.0/100/5;
+# Sa = 2*30.0; A = 144.0/200/5;  ## Sa = 0.6mm while 1 neurons is 0.01
+# Sb = 2*180.0; B = 0;
+# c = 50.0/100/5;
 ## - I create the lateral connections and attached them to the neural field
 def DoF(x, Sa, Aa, Sb, Ab, c):
     Ga = Aa*(np.exp(-(x**2)/(2*Sa**2)))
