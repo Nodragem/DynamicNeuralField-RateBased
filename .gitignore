@@ -1,0 +1,6 @@
+GainEffect_Results/
+Dinasaur/
+*.pyc
+.idea/
+*.ini
+convolution_example.html
