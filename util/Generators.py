@@ -102,7 +102,7 @@ class NeuralField1D(Generator):
             convolution = fftconvolve(self.myConnection, activity_map,  mode="valid") # better
             self.dV += convolution
         self.dV += self.noise(self.n)
-        self.dV -= self.u0
+        self.dV += self.u0
         self.dV -= self.V
         self.dV = self.dV/self.tau
         new_V = self.V + self.dt*self.dV

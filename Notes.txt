@@ -1,0 +1,7 @@
+The gain parameter can be seen as a thresolding softener/hardener.
+
+Indeed when the gain parameter is high the sigmoid if hard.
+Harder is the sigmoid and more we follow the matching law.
+Softer it is and more we choose the good option, even when the difference is small.
+
+Basically soft thresholding allows to take time in the decision making.

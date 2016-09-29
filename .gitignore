@@ -1,7 +1,8 @@
-GainEffect_Results/zoomOn200
+GainEffect_Results/
 Dinasaur/
 *.pyc
 .idea/
 *.ini
 *.p
+*.mp4
 convolution_example.html
